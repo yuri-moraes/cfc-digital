@@ -26,7 +26,7 @@ export const AdminDashboard = () => {
           </div>
         </Card>
         <Card>
-          <h3 className="font-bold text-lg mb-4">Agenda do Dia</h3>
+          <h3 className="font-bold text-lg mb-4 text-black">Agenda do Dia</h3>
           <div className="space-y-3 max-h-60 overflow-y-auto">
             {todaysClasses.length > 0 ? todaysClasses.map((c, i) => (
               <div key={i} className="text-sm p-2 bg-gray-50 rounded">
@@ -39,4 +39,3 @@ export const AdminDashboard = () => {
     </div>
   );
 };
-

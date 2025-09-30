@@ -28,14 +28,14 @@ export const AdminReports = () => {
           <select 
             value={selectedInstructor} 
             onChange={e => setSelectedInstructor(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 text-black py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {MOCKED_INSTRUCTORS.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
           </select>
           <select
             value={selectedMonth}
             onChange={e => setSelectedMonth(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="10">Outubro 2024</option>
             <option value="11">Novembro 2024</option>
