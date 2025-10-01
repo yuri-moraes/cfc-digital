@@ -54,14 +54,14 @@ export const MOCKED_STUDENTS = [
 
 export const MOCKED_SCHEDULE = {
   'instrutor1': [
-    { date: '2025-10-28', time: '09:00', studentId: 'aluno1', studentName: 'Carlos Andrade' },
-    { date: '2025-10-28', time: '11:00', studentId: 'aluno3', studentName: 'Fernanda Lima' },
-    { date: '2025-10-29', time: '14:00', studentId: null, studentName: null },
-    { date: '2025-10-30', time: '08:00', studentId: 'aluno1', studentName: 'Carlos Andrade' },
-    { date: '2025-11-04', time: '09:00', studentId: 'aluno1', studentName: 'Carlos Andrade' },
+    { date: '2024-10-28', time: '09:00', studentId: 'aluno1', studentName: 'Carlos Andrade' },
+    { date: '2024-10-28', time: '11:00', studentId: 'aluno3', studentName: 'Fernanda Lima' },
+    { date: '2024-10-29', time: '14:00', studentId: null, studentName: null },
+    { date: '2024-10-30', time: '08:00', studentId: 'aluno1', studentName: 'Carlos Andrade' },
+    { date: '2024-11-04', time: '09:00', studentId: 'aluno1', studentName: 'Carlos Andrade' },
   ],
   'instrutor2': [
-    { date: '2025-10-28', time: '10:00', studentId: 'aluno2', studentName: 'Beatriz Costa' },
-    { date: '2025-10-29', time: '15:00', studentId: null, studentName: null },
+    { date: '2024-10-28', time: '10:00', studentId: 'aluno2', studentName: 'Beatriz Costa' },
+    { date: '2024-10-29', time: '15:00', studentId: null, studentName: null },
   ],
 };

@@ -7,10 +7,15 @@ import { MOCKED_SCHEDULE, MOCKED_INSTRUCTORS } from '@/app/data/mockData';
 
 export const AdminDashboard = () => {
   const today = new Date('2024-10-28T12:00:00Z').toISOString().split('T')[0];
-  
-  const todaysClasses = useMemo(() => Object.values(MOCKED_SCHEDULE)
-    .flat()
-    .filter(c => c.date === today && c.studentId), [today]);
+
+  const todaysClasses = useMemo(() => Object.entries(MOCKED_SCHEDULE)
+    .flatMap(([instructorId, classes]) => classes
+      .filter((c) => c.date === today && c.studentId)
+      .map((c) => ({
+        ...c,
+        instructorId,
+        instructorName: MOCKED_INSTRUCTORS.find((inst) => inst.id === instructorId)?.name || 'Instrutor não informado',
+      }))), [today]);
 
   return (
     <div>
@@ -28,11 +33,25 @@ export const AdminDashboard = () => {
         <Card>
           <h3 className="font-bold text-lg mb-4 text-black">Agenda do Dia</h3>
           <div className="space-y-3 max-h-60 overflow-y-auto">
-            {todaysClasses.length > 0 ? todaysClasses.map((c, i) => (
-              <div key={i} className="text-sm p-2 bg-gray-50 rounded">
-                <span className="font-semibold">{c.time}</span> - {c.studentName} com {MOCKED_INSTRUCTORS.find(inst => MOCKED_SCHEDULE[inst.id].includes(c)).name}
+            {todaysClasses.length > 0 ? (
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <span>Horário</span>
+                  <span>Aluno</span>
+                  <span>Instrutor</span>
+                </div>
+                {todaysClasses.map((c) => (
+                  <div
+                    key={`${c.instructorId}-${c.time}-${c.studentId}`}
+                    className="grid grid-cols-3 gap-2 rounded bg-gray-50 p-2 text-sm text-gray-700"
+                  >
+                    <span className="font-semibold text-gray-800">{c.time}</span>
+                    <span>{c.studentName}</span>
+                    <span>{c.instructorName}</span>
+                  </div>
+                ))}
               </div>
-            )) : <p className="text-gray-500">Nenhuma aula hoje.</p>}
+            ) : <p className="text-gray-500">Nenhuma aula hoje.</p>}
           </div>
         </Card>
       </div>
