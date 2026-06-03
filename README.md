@@ -29,9 +29,39 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Deployment to Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Prerequisites
+- Vercel account (https://vercel.com)
+- GitHub repository (for CI/CD integration)
+- Backend API deployed (get the URL from backend deployment)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Frontend Deployment Steps
+
+1. Create a new project in Vercel:
+   - Link to the `cfc-digital` GitHub repository
+   - Vercel will auto-detect Next.js project
+
+2. Configure environment variables:
+   - `NEXT_PUBLIC_API_URL`: Backend API base URL
+     - Example: `https://cfc-digital-backend.vercel.app/api`
+     - This must be set AFTER the backend is deployed
+
+3. Deploy:
+   - Push to main branch or use Vercel dashboard's deploy button
+   - Vercel automatically builds and deploys Next.js apps
+   - Frontend will be available at Vercel's provided URL
+
+### Environment Variable Configuration
+- The `NEXT_PUBLIC_API_URL` is configured in `next.config.mjs`
+- In development, it defaults to `http://localhost:3001/api`
+- In production, it reads from the Vercel environment variable
+- The variable name starts with `NEXT_PUBLIC_` so it's available in the browser
+
+### Backend Integration
+- The frontend communicates with the backend via the `NEXT_PUBLIC_API_URL` environment variable
+- Ensure CORS is properly configured on the backend to allow requests from the frontend domain
+- For local development, the backend should run on port 3001
+
+For more details on Next.js deployment, see the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying).
 # cfc-digital
