@@ -1,0 +1,203 @@
+'use client';
+
+/**
+ * Custom error class for API errors
+ */
+export class ApiError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
+/**
+ * Base URL for API requests
+ * Uses environment variable or defaults to localhost
+ */
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+/**
+ * Helper function to make API requests
+ * Handles authentication, headers, error handling
+ */
+async function request(endpoint, options = {}) {
+  const { method = 'GET', body = null, ...restOptions } = options;
+
+  // Get auth token from localStorage
+  const authToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+
+  // Prepare headers
+  const headers = {
+    'Content-Type': 'application/json',
+    ...restOptions.headers,
+  };
+
+  // Add Authorization header if token exists
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+
+  // Make the request
+  const url = `${API_URL}${endpoint}`;
+  const fetchOptions = {
+    method,
+    headers,
+    ...restOptions,
+  };
+
+  if (body) {
+    fetchOptions.body = JSON.stringify(body);
+  }
+
+  const response = await fetch(url, fetchOptions);
+
+  // Handle error responses
+  if (!response.ok) {
+    let errorMessage = `API Error: ${response.statusText}`;
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.message || errorMessage;
+    } catch (e) {
+      // Response is not JSON, use status text
+    }
+    throw new ApiError(errorMessage, response.status);
+  }
+
+  // Parse and return response
+  try {
+    return await response.json();
+  } catch (e) {
+    // If response is not JSON (e.g., 204 No Content), return null
+    return null;
+  }
+}
+
+/**
+ * API client object with all available endpoints
+ */
+export const api = {
+  // Authentication
+  login: (email, password) =>
+    request('/auth/login', {
+      method: 'POST',
+      body: { email, password },
+    }),
+
+  logout: () =>
+    request('/auth/logout', {
+      method: 'POST',
+    }),
+
+  getMe: () =>
+    request('/auth/me', {
+      method: 'GET',
+    }),
+
+  // Users
+  getUsers: () =>
+    request('/users', {
+      method: 'GET',
+    }),
+
+  getUser: (id) =>
+    request(`/users/${id}`, {
+      method: 'GET',
+    }),
+
+  createUser: (data) =>
+    request('/users', {
+      method: 'POST',
+      body: data,
+    }),
+
+  updateUser: (id, data) =>
+    request(`/users/${id}`, {
+      method: 'PUT',
+      body: data,
+    }),
+
+  deleteUser: (id) =>
+    request(`/users/${id}`, {
+      method: 'DELETE',
+    }),
+
+  // Classes
+  getClasses: () =>
+    request('/classes', {
+      method: 'GET',
+    }),
+
+  getClass: (id) =>
+    request(`/classes/${id}`, {
+      method: 'GET',
+    }),
+
+  createClass: (data) =>
+    request('/classes', {
+      method: 'POST',
+      body: data,
+    }),
+
+  updateClass: (id, data) =>
+    request(`/classes/${id}`, {
+      method: 'PUT',
+      body: data,
+    }),
+
+  deleteClass: (id) =>
+    request(`/classes/${id}`, {
+      method: 'DELETE',
+    }),
+
+  // Schedules
+  getSchedules: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const endpoint = queryString ? `/schedules?${queryString}` : '/schedules';
+    return request(endpoint, {
+      method: 'GET',
+    });
+  },
+
+  getSchedule: (id) =>
+    request(`/schedules/${id}`, {
+      method: 'GET',
+    }),
+
+  createSchedule: (data) =>
+    request('/schedules', {
+      method: 'POST',
+      body: data,
+    }),
+
+  updateSchedule: (id, data) =>
+    request(`/schedules/${id}`, {
+      method: 'PUT',
+      body: data,
+    }),
+
+  deleteSchedule: (id) =>
+    request(`/schedules/${id}`, {
+      method: 'DELETE',
+    }),
+
+  // Enrollments
+  getEnrollments: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const endpoint = queryString ? `/enrollments?${queryString}` : '/enrollments';
+    return request(endpoint, {
+      method: 'GET',
+    });
+  },
+
+  createEnrollment: (data) =>
+    request('/enrollments', {
+      method: 'POST',
+      body: data,
+    }),
+
+  deleteEnrollment: (id) =>
+    request(`/enrollments/${id}`, {
+      method: 'DELETE',
+    }),
+};

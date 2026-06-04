@@ -11,13 +11,13 @@ export const LoginScreen = ({ onLogin }) => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    onLogin(email);
+    onLogin(email, password);
   };
 
   const demoLogin = (demoEmail) => {
     setEmail(demoEmail);
     setPassword('123456');
-    onLogin(demoEmail);
+    onLogin(demoEmail, '123456');
   };
 
   return (
