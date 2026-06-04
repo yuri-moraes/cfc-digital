@@ -95,10 +95,7 @@ export const api = {
     }),
 
   // Users
-  getUsers: () =>
-    request('/users', {
-      method: 'GET',
-    }),
+  getUsers: () => request('/users').then((r) => r.data),
 
   getUser: (id) =>
     request(`/users/${id}`, {
@@ -123,10 +120,7 @@ export const api = {
     }),
 
   // Classes
-  getClasses: () =>
-    request('/classes', {
-      method: 'GET',
-    }),
+  getClasses: () => request('/classes').then((r) => r.data),
 
   getClass: (id) =>
     request(`/classes/${id}`, {
@@ -154,9 +148,7 @@ export const api = {
   getSchedules: (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const endpoint = queryString ? `/schedules?${queryString}` : '/schedules';
-    return request(endpoint, {
-      method: 'GET',
-    });
+    return request(endpoint).then((r) => r.data);
   },
 
   getSchedule: (id) =>
@@ -185,9 +177,7 @@ export const api = {
   getEnrollments: (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const endpoint = queryString ? `/enrollments?${queryString}` : '/enrollments';
-    return request(endpoint, {
-      method: 'GET',
-    });
+    return request(endpoint).then((r) => r.data);
   },
 
   createEnrollment: (data) =>

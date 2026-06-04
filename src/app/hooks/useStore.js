@@ -15,12 +15,15 @@ export const useStore = () => {
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
   };
 
+  const ROLE_TO_TYPE = { ADMIN: 'Admin', INSTRUCTOR: 'Instrutor', STUDENT: 'Aluno' };
+
   const login = async (email, password) => {
     try {
       const response = await api.login(email, password);
       if (response && response.token) {
         localStorage.setItem('authToken', response.token);
-        setUser(response.user);
+        const u = response.user;
+        setUser({ ...u, type: ROLE_TO_TYPE[u.role] ?? u.role });
         showToast('Login realizado com sucesso!', 'success');
         return true;
       }
