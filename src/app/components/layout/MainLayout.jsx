@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, Clock, Users, FileText, LogOut, User, Menu, X, Bell, ClipboardList, GraduationCap } from 'lucide-react';
 import { AdminDashboard } from '../screens/admin/AdminDashboard';
 import { AdminUserManagement } from '../screens/admin/AdminUserManagement';
@@ -13,13 +13,18 @@ import { InstructorTestResultScreen } from '../screens/instructor/InstructorTest
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { api } from '@/app/api/client';
 
+const notifTypeColors = {
+  class_reminder: { bg: 'bg-blue-50', badge: 'bg-blue-100 text-blue-700' },
+  class_cancelled: { bg: 'bg-red-50', badge: 'bg-red-100 text-red-700' },
+  absence_confirmed: { bg: 'bg-green-50', badge: 'bg-green-100 text-green-700' },
+};
+
 export const MainLayout = ({ user, onLogout, showToast, unreadCount, refreshUnreadCount }) => {
   const [activeView, setActiveView] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notifLoading, setNotifLoading] = useState(false);
-  const bellRef = useRef(null);
 
   const navItems = {
     Admin: [
@@ -59,22 +64,16 @@ export const MainLayout = ({ user, onLogout, showToast, unreadCount, refreshUnre
   const handleMarkAllRead = async () => {
     await api.notifications.markAllRead();
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-    refreshUnreadCount();
+    refreshUnreadCount?.();
   };
 
   const handleMarkRead = async (id) => {
     await api.notifications.markRead(id);
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-    refreshUnreadCount();
+    refreshUnreadCount?.();
   };
 
-  const notifTypeColors = {
-    class_reminder: { bg: 'bg-blue-50', badge: 'bg-blue-100 text-blue-700' },
-    class_cancelled: { bg: 'bg-red-50', badge: 'bg-red-100 text-red-700' },
-    absence_confirmed: { bg: 'bg-green-50', badge: 'bg-green-100 text-green-700' },
-  };
-
-  const CurrentScreen = () => {
+  const renderCurrentScreen = () => {
     if (activeView === 'profile') return <ProfileScreen user={user} showToast={showToast} />;
 
     if (user.type === 'Admin') {
@@ -110,13 +109,12 @@ export const MainLayout = ({ user, onLogout, showToast, unreadCount, refreshUnre
     </button>
   );
 
-  const BellButton = ({ size = 20 }) => (
+  const renderBellButton = () => (
     <button
-      ref={bellRef}
       onClick={openNotifications}
       className="relative flex items-center gap-3 px-4 py-3 rounded-lg w-full text-left text-gray-600 hover:bg-gray-100"
     >
-      <Bell size={size} />
+      <Bell size={20} />
       <span>Notificações</span>
       {unreadCount > 0 && (
         <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
@@ -136,7 +134,7 @@ export const MainLayout = ({ user, onLogout, showToast, unreadCount, refreshUnre
         </nav>
         <div className="mt-auto absolute bottom-4 w-56">
           <div className="border-t pt-4 space-y-2">
-            <BellButton />
+            {renderBellButton()}
             <NavLink item={{ icon: User, label: 'Meu Perfil', view: 'profile' }} />
             <button
               onClick={onLogout}
@@ -167,7 +165,7 @@ export const MainLayout = ({ user, onLogout, showToast, unreadCount, refreshUnre
         </header>
 
         <main className="p-4 sm:p-6 md:p-8">
-          <CurrentScreen />
+          {renderCurrentScreen()}
         </main>
       </div>
 
@@ -185,7 +183,7 @@ export const MainLayout = ({ user, onLogout, showToast, unreadCount, refreshUnre
             {userNav.map(item => <NavLink key={item.view} item={item} />)}
           </nav>
           <div className="mt-8 border-t pt-4 space-y-2">
-            <BellButton />
+            {renderBellButton()}
             <NavLink item={{ icon: User, label: 'Meu Perfil', view: 'profile' }} />
             <button
               onClick={onLogout}
@@ -200,7 +198,7 @@ export const MainLayout = ({ user, onLogout, showToast, unreadCount, refreshUnre
       {isNotificationsOpen && (
         <div className="fixed inset-0 z-50" onClick={() => setIsNotificationsOpen(false)}>
           <div
-            className="absolute right-4 top-16 lg:right-auto lg:left-68 lg:top-auto w-80 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden"
+            className="absolute right-4 top-16 lg:right-auto lg:left-64 lg:top-auto w-80 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100">
