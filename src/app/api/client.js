@@ -190,4 +190,42 @@ export const api = {
     request(`/enrollments/${id}`, {
       method: 'DELETE',
     }),
+
+  assignments: {
+    list: (params) => request(`/assignments?${new URLSearchParams(params)}`).then(r => r.data),
+    create: (data) => request('/assignments', { method: 'POST', body: data }),
+    update: (id, data) => request(`/assignments/${id}`, { method: 'PUT', body: data }),
+  },
+
+  grades: {
+    list: (params) => request(`/grades?${new URLSearchParams(params)}`).then(r => r.data),
+    create: (data) => request('/grades', { method: 'POST', body: data }),
+    update: (id, data) => request(`/grades/${id}`, { method: 'PUT', body: data }),
+  },
+
+  attendance: {
+    list: (params) => request(`/attendance?${new URLSearchParams(params)}`).then(r => r.data),
+    mark: (data) => request('/attendance', { method: 'POST', body: data }),
+    validate: (id) => request(`/attendance/${id}/validate`, { method: 'PUT' }),
+  },
+
+  notifications: {
+    getPreferences: () => request('/notifications/preferences'),
+    updatePreferences: (data) => request('/notifications/preferences', { method: 'PUT', body: data }),
+    list: (params) => request(`/notifications?${new URLSearchParams(params)}`).then(r => r.data),
+    unreadCount: () => request('/notifications/unread-count'),
+    markRead: (id) => request(`/notifications/${id}/read`, { method: 'PUT' }),
+    markAllRead: () => request('/notifications/read-all', { method: 'PUT' }),
+  },
+
+  cancellations: {
+    create: (scheduleId, data) => request(`/schedules/${scheduleId}/cancel`, { method: 'POST', body: data }),
+    delete: (scheduleId, date) => request(`/schedules/${scheduleId}/cancel/${date}`, { method: 'DELETE' }),
+    list: (scheduleId) => request(`/schedules/${scheduleId}/cancellations`).then(r => r.data),
+  },
+
+  absences: {
+    declare: (scheduleId, data) => request(`/schedules/${scheduleId}/absence`, { method: 'POST', body: data }),
+    list: (scheduleId) => request(`/schedules/${scheduleId}/absences`).then(r => r.data),
+  },
 };
