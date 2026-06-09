@@ -32,9 +32,7 @@ export const StudentProgressScreen = ({ user }) => {
         }
         allRecords.sort((a, b) => b.attendance_date.localeCompare(a.attendance_date));
         setAttendanceRecords(allRecords);
-      } catch {
-        // silently degrade
-      } finally {
+      } catch {} finally {
         setLoading(false);
       }
     };

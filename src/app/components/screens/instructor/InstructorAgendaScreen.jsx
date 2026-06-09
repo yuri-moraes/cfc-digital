@@ -95,16 +95,22 @@ export const InstructorAgendaScreen = ({ user, showToast, refreshUnreadCount }) 
   const handleValidate = async () => {
     setIsValidating(true);
     let count = 0;
+    let failed = 0;
     for (const s of todaySchedules) {
       for (const rec of (attendanceByKey[`${s.id}-${dateStr}`] || []).filter(r => r.status === 'pending')) {
         try {
           await api.attendance.validate(rec.id);
           count++;
-        } catch {}
+        } catch {
+          failed++;
+        }
       }
     }
     setIsValidating(false);
-    showToast(count > 0 ? `${count} sessão(ões) validada(s).` : 'Nenhuma sessão pendente para validar.', 'success');
+    const msg = count > 0
+      ? `${count} sessão(ões) validada(s)${failed > 0 ? `, ${failed} erro(s)` : ''}.`
+      : 'Nenhuma sessão pendente para validar.';
+    showToast(msg, 'success');
     todaySchedules.forEach(s => {
       api.attendance.list({ scheduleId: s.id, date: dateStr })
         .then(att => setAttendanceByKey(prev => ({ ...prev, [`${s.id}-${dateStr}`]: Array.isArray(att) ? att : [] })))
@@ -156,7 +162,7 @@ export const InstructorAgendaScreen = ({ user, showToast, refreshUnreadCount }) 
                 <div className="flex justify-between items-center mb-3">
                   <span className="font-semibold text-gray-800 text-lg">
                     {schedule.start_time?.substring(0, 5)}
-                    {cancelled && <span className="ml-3 text-sm font-medium text-red-600 line-through">Cancelada</span>}
+                    {cancelled && <span className="ml-3 text-sm font-medium text-red-600">Cancelada</span>}
                   </span>
                   {!cancelled && (
                     <button
