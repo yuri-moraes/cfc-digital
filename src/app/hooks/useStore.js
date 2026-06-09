@@ -15,9 +15,7 @@ export const useStore = () => {
     try {
       const { count } = await api.notifications.unreadCount();
       setUnreadCount(count);
-    } catch {
-      // silent — badge stays at previous value
-    }
+    } catch {}
   };
 
   const showToast = (message, type = 'success') => {

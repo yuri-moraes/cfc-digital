@@ -14,7 +14,13 @@ export default function App() {
 
   return (
     <>
-      <MainLayout user={user} onLogout={logout} showToast={showToast} unreadCount={unreadCount} refreshUnreadCount={refreshUnreadCount} />
+      <MainLayout
+        user={user}
+        onLogout={logout}
+        showToast={showToast}
+        unreadCount={unreadCount}
+        refreshUnreadCount={refreshUnreadCount}
+      />
       <Toast message={toast.message} type={toast.type} show={toast.show} />
     </>
   );
