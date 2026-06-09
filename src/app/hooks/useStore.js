@@ -9,6 +9,16 @@ export const useStore = () => {
   const [classes, setClasses] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const refreshUnreadCount = async () => {
+    try {
+      const { count } = await api.notifications.unreadCount();
+      setUnreadCount(count);
+    } catch {
+      // silent — badge stays at previous value
+    }
+  };
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -24,6 +34,7 @@ export const useStore = () => {
         localStorage.setItem('authToken', response.token);
         const u = response.user;
         setUser({ ...u, type: ROLE_TO_TYPE[u.role] ?? u.role });
+        refreshUnreadCount();
         showToast('Login realizado com sucesso!', 'success');
         return true;
       }
@@ -49,6 +60,7 @@ export const useStore = () => {
       setClasses([]);
       setSchedules([]);
       setEnrollments([]);
+      setUnreadCount(0);
     }
   };
 
@@ -130,9 +142,11 @@ export const useStore = () => {
     classes,
     schedules,
     enrollments,
+    unreadCount,
     login,
     logout,
     showToast,
+    refreshUnreadCount,
     loadClasses,
     loadEnrollments,
     loadSchedules,
