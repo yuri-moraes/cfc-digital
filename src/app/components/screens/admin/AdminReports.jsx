@@ -4,20 +4,9 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/app/components/ui/Card';
 import { Spinner } from '@/app/components/ui/Spinner';
 import { api } from '@/app/api/client';
-import { expandScheduleToDates, toDateStr } from '@/app/lib/utils';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
-function getDatesInMonth(year, month) {
-  const dates = [];
-  const d = new Date(year, month - 1, 1);
-  while (d.getMonth() === month - 1) {
-    dates.push(new Date(d));
-    d.setDate(d.getDate() + 1);
-  }
-  return dates;
-}
 
 export const AdminReports = () => {
   const currentYear = new Date().getFullYear();
@@ -26,7 +15,6 @@ export const AdminReports = () => {
   const [instructors, setInstructors] = useState([]);
   const [selectedInstructorId, setSelectedInstructorId] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
-  const [schedules, setSchedules] = useState([]);
   const [reportData, setReportData] = useState({ total: 0, byDate: [], byTime: [] });
   const [loadingInstructors, setLoadingInstructors] = useState(true);
   const [loadingReport, setLoadingReport] = useState(false);
@@ -34,67 +22,52 @@ export const AdminReports = () => {
   useEffect(() => {
     api.getUsers()
       .then(data => {
-        const instructorList = (Array.isArray(data) ? data : []).filter(u => u.role === 'INSTRUCTOR');
-        setInstructors(instructorList);
-        if (instructorList.length > 0) setSelectedInstructorId(instructorList[0].id);
+        const list = data.filter(u => u.role === 'INSTRUCTOR');
+        setInstructors(list);
+        if (list.length > 0) setSelectedInstructorId(list[0].id);
       })
       .finally(() => setLoadingInstructors(false));
   }, []);
 
   useEffect(() => {
     if (!selectedInstructorId) return;
-    api.getSchedules({ instructorId: selectedInstructorId })
-      .then(data => setSchedules(Array.isArray(data) ? data : []))
-      .catch(() => setSchedules([]));
-  }, [selectedInstructorId]);
-
-  useEffect(() => {
-    if (!selectedInstructorId || schedules.length === 0) return;
     const compute = async () => {
       setLoadingReport(true);
       try {
-        const monthDates = getDatesInMonth(currentYear, selectedMonth);
-        const sessionDates = monthDates.flatMap(date =>
-          expandScheduleToDates(schedules, date).map(s => ({ schedule: s, date }))
+        // Backend has no date-range filter on lesson-slots; fetch with high limit and filter client-side
+        const slots = await api.lessonSlots.list({ limit: 500 });
+        const monthStr = `${currentYear}-${String(selectedMonth).padStart(2, '0')}`;
+        const filtered = slots.filter(s =>
+          // eslint-disable-next-line eqeqeq
+          s.instructor_id == selectedInstructorId &&
+          s.status === 'completed' &&
+          s.scheduled_date?.startsWith(monthStr)
         );
 
-        const results = await Promise.all(
-          sessionDates.map(async ({ schedule, date }) => {
-            const dateStr = toDateStr(date);
-            const records = await api.attendance.list({ scheduleId: schedule.id, date: dateStr }).catch(() => []);
-            return { date, schedule, hasAttendance: (Array.isArray(records) ? records : []).length > 0 };
-          })
-        );
-
-        const conducted = results.filter(r => r.hasAttendance);
-        const groupedByDate = {};
-        const groupedByTime = {};
-        conducted.forEach(({ date, schedule }) => {
-          const dateStr = toDateStr(date);
-          const time = schedule.start_time?.substring(0, 5);
-          if (!groupedByDate[dateStr]) groupedByDate[dateStr] = [];
-          groupedByDate[dateStr].push(time);
-          groupedByTime[time] = (groupedByTime[time] || 0) + 1;
+        const byDate = {};
+        const byTime = {};
+        filtered.forEach(s => {
+          const d = s.scheduled_date;
+          const t = s.start_time?.substring(0, 5);
+          if (!byDate[d]) byDate[d] = [];
+          byDate[d].push(t);
+          byTime[t] = (byTime[t] || 0) + 1;
         });
 
         setReportData({
-          total: conducted.length,
-          byDate: Object.entries(groupedByDate)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([date, times]) => ({ date, times: times.sort() })),
-          byTime: Object.entries(groupedByTime)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([time, count]) => ({ time, count })),
+          total: filtered.length,
+          byDate: Object.entries(byDate).sort(([a], [b]) => a.localeCompare(b)).map(([date, times]) => ({ date, times: times.sort() })),
+          byTime: Object.entries(byTime).sort(([a], [b]) => a.localeCompare(b)).map(([time, count]) => ({ time, count })),
         });
       } finally {
         setLoadingReport(false);
       }
     };
     compute();
-  }, [selectedInstructorId, selectedMonth, schedules]);
+  }, [selectedInstructorId, selectedMonth]);
 
-  const formatDate = (isoDate) =>
-    new Date(`${isoDate}T12:00:00Z`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const formatDate = (iso) =>
+    new Date(`${iso}T12:00:00Z`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
 
   if (loadingInstructors) return <div className="p-8"><Spinner /></div>;
 
@@ -103,21 +76,13 @@ export const AdminReports = () => {
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Relatórios</h2>
       <Card>
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <select
-            value={selectedInstructorId}
-            onChange={e => setSelectedInstructorId(e.target.value)}
-            className="w-full px-4 text-black py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
+          <select value={selectedInstructorId} onChange={e => setSelectedInstructorId(e.target.value)}
+            className="w-full px-4 text-black py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             {instructors.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
           </select>
-          <select
-            value={selectedMonth}
-            onChange={e => setSelectedMonth(parseInt(e.target.value, 10))}
-            className="w-full px-4 py-3 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {MONTH_NAMES.map((name, i) => (
-              <option key={i + 1} value={i + 1}>{name} {currentYear}</option>
-            ))}
+          <select value={selectedMonth} onChange={e => setSelectedMonth(parseInt(e.target.value, 10))}
+            className="w-full px-4 py-3 text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            {MONTH_NAMES.map((name, i) => <option key={i + 1} value={i + 1}>{name} {currentYear}</option>)}
           </select>
         </div>
 
@@ -126,7 +91,7 @@ export const AdminReports = () => {
             <p className="text-gray-500 text-sm">Total de aulas realizadas no mês selecionado</p>
             <p className="text-4xl font-bold text-blue-600 mt-1">{reportData.total}</p>
             {reportData.total === 0 ? (
-              <p className="mt-4 text-gray-500 text-sm">Nenhuma aula registrada para este instrutor no período.</p>
+              <p className="mt-4 text-gray-500 text-sm">Nenhuma aula realizada para este instrutor no período.</p>
             ) : (
               <div className="mt-6 space-y-6">
                 <div>
@@ -135,11 +100,9 @@ export const AdminReports = () => {
                     {reportData.byDate.map(({ date, times }) => (
                       <div key={date} className="rounded bg-white/70 p-3">
                         <p className="text-sm font-semibold text-gray-700">{formatDate(date)}</p>
-                        <div className="mt-2 flex flex-wrap gap-2 text-sm text-gray-600">
+                        <div className="mt-2 flex flex-wrap gap-2">
                           {times.map(time => (
-                            <span key={`${date}-${time}`} className="rounded-full bg-blue-100 px-3 py-1 font-medium text-blue-700">
-                              {time}
-                            </span>
+                            <span key={`${date}-${time}`} className="rounded-full bg-blue-100 px-3 py-1 font-medium text-blue-700 text-sm">{time}</span>
                           ))}
                         </div>
                       </div>
