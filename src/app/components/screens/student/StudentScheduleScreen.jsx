@@ -193,10 +193,10 @@ export const StudentScheduleScreen = ({ user, showToast, refreshUnreadCount }) =
                   <div className="space-y-2">
                     {dateSlots
                       .sort((a, b) => a.start_time.localeCompare(b.start_time))
-                      .map((slot, i) => {
+                      .map((slot) => {
                         const key = `${slot.scheduled_date}-${slot.start_time}-${slot.instructor_id}`;
                         return (
-                          <div key={`${date}-${slot.start_time}-${i}`}
+                          <div key={key}
                             className="flex justify-between items-center bg-green-50 border border-green-100 rounded-lg px-3 py-2">
                             <div className="text-sm">
                               <span className="font-medium text-gray-800">{slot.start_time?.substring(0, 5)}</span>
