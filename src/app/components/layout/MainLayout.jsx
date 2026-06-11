@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, Users, FileText, LogOut, User, Menu, X, Bell, ClipboardList, GraduationCap } from 'lucide-react';
+import { Calendar, Users, FileText, LogOut, User, Menu, X, Bell, ClipboardList, GraduationCap, Car } from 'lucide-react';
 import { AdminDashboard } from '../screens/admin/AdminDashboard';
 import { AdminUserManagement } from '../screens/admin/AdminUserManagement';
 import { AdminReports } from '../screens/admin/AdminReports';
+import { AdminVehicleManagement } from '../screens/admin/AdminVehicleManagement';
 import { StudentScheduleScreen } from '../screens/student/StudentScheduleScreen';
-import { StudentMyClassesScreen } from '../screens/student/StudentMyClassesScreen';
 import { StudentProgressScreen } from '../screens/student/StudentProgressScreen';
 import { InstructorAgendaScreen } from '../screens/instructor/InstructorAgendaScreen';
 import { InstructorTestResultScreen } from '../screens/instructor/InstructorTestResultScreen';
@@ -28,17 +28,17 @@ export const MainLayout = ({ user, onLogout, showToast, unreadCount, refreshUnre
 
   const navItems = {
     Admin: [
-      { icon: Users, label: 'Usuários', view: 'users' },
-      { icon: FileText, label: 'Relatórios', view: 'reports' },
+      { icon: Users,         label: 'Usuários',   view: 'users'    },
+      { icon: Car,           label: 'Veículos',   view: 'vehicles' },
+      { icon: FileText,      label: 'Relatórios', view: 'reports'  },
     ],
     Aluno: [
-      { icon: Calendar, label: 'Meu Horário', view: 'schedule' },
-      { icon: Clock, label: 'Minhas Aulas', view: 'my-classes' },
+      { icon: Calendar,      label: 'Meu Horário',  view: 'schedule' },
       { icon: ClipboardList, label: 'Meu Histórico', view: 'progress' },
     ],
     Instrutor: [
-      { icon: Calendar, label: 'Agenda', view: 'agenda' },
-      { icon: GraduationCap, label: 'Exame Prático', view: 'exam' },
+      { icon: Calendar,      label: 'Agenda',        view: 'agenda' },
+      { icon: GraduationCap, label: 'Exame Prático', view: 'exam'   },
     ],
   };
 
@@ -77,12 +77,12 @@ export const MainLayout = ({ user, onLogout, showToast, unreadCount, refreshUnre
     if (activeView === 'profile') return <ProfileScreen user={user} showToast={showToast} />;
 
     if (user.type === 'Admin') {
-      if (activeView === 'users') return <AdminUserManagement showToast={showToast} />;
-      if (activeView === 'reports') return <AdminReports showToast={showToast} />;
-      return <AdminDashboard showToast={showToast} />;
+      if (activeView === 'users')    return <AdminUserManagement showToast={showToast} />;
+      if (activeView === 'vehicles') return <AdminVehicleManagement showToast={showToast} />;
+      if (activeView === 'reports')  return <AdminReports showToast={showToast} />;
+      return <AdminDashboard />;
     }
     if (user.type === 'Aluno') {
-      if (activeView === 'my-classes') return <StudentMyClassesScreen showToast={showToast} />;
       if (activeView === 'progress') return <StudentProgressScreen user={user} />;
       return <StudentScheduleScreen user={user} showToast={showToast} refreshUnreadCount={refreshUnreadCount} />;
     }
