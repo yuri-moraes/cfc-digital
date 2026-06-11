@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Car, Pencil, Trash2, Plus } from 'lucide-react';
 import { Card } from '@/app/components/ui/Card';
 import { Button } from '@/app/components/ui/Button';
@@ -19,7 +19,7 @@ export const AdminVehicleManagement = ({ showToast }) => {
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       setVehicles(await api.vehicles.list());
     } catch {
@@ -27,9 +27,9 @@ export const AdminVehicleManagement = ({ showToast }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   const openCreate = () => { setForm(EMPTY_FORM); setModal({ open: true, vehicle: null }); };
   const openEdit   = (v) => {
@@ -40,7 +40,7 @@ export const AdminVehicleManagement = ({ showToast }) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const payload = { ...form, year: form.year ? Number(form.year) : undefined };
+      const payload = { ...form, year: form.year ? Number(form.year) : null };
       if (modal.vehicle) {
         await api.vehicles.update(modal.vehicle.id, payload);
         showToast('Veículo atualizado.', 'success');
