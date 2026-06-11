@@ -5,51 +5,43 @@ import { Spinner } from '@/app/components/ui/Spinner';
 import { Card } from '@/app/components/ui/Card';
 import { api } from '@/app/api/client';
 
+const CHARGED = new Set(['scheduled', 'completed', 'no_show', 'absent_charged']);
+
+const STATUS_ICON = {
+  completed:      { icon: '✓', color: 'text-green-600' },
+  no_show:        { icon: '✗', color: 'text-red-500'   },
+  absent_valid:   { icon: '—', color: 'text-gray-400'  },
+  absent_charged: { icon: '✗', color: 'text-orange-500'},
+  cancelled:      { icon: '—', color: 'text-gray-400'  },
+};
+
 export const StudentProgressScreen = ({ user }) => {
-  const [enrollments, setEnrollments] = useState([]);
-  const [attendanceRecords, setAttendanceRecords] = useState([]);
-  const [examGrade, setExamGrade] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile]       = useState(null);
+  const [slots, setSlots]           = useState([]);
+  const [examResults, setExamResults] = useState([]);
+  const [loading, setLoading]       = useState(true);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const enrs = await api.getEnrollments({ studentId: user.id });
-        const enrList = Array.isArray(enrs) ? enrs : [];
-        setEnrollments(enrList);
-
-        const grades = await api.grades.list({ studentId: user.id });
-        const gradeList = Array.isArray(grades) ? grades : [];
-        if (gradeList.length > 0) {
-          const exam = gradeList.find(g => g.score !== undefined && g.score !== null);
-          setExamGrade(exam ?? null);
-        }
-
-        const allRecords = [];
-        for (const enr of enrList) {
-          const records = await api.attendance.list({ studentId: user.id, classId: enr.class_id });
-          (Array.isArray(records) ? records : []).forEach(r => allRecords.push(r));
-        }
-        allRecords.sort((a, b) => b.attendance_date.localeCompare(a.attendance_date));
-        setAttendanceRecords(allRecords);
-      } catch {} finally {
-        setLoading(false);
-      }
-    };
-    load();
+    Promise.all([
+      api.getUser(user.id),
+      api.lessonSlots.list({ limit: 500 }),
+      api.examResults.list(),
+    ]).then(([p, s, e]) => {
+      setProfile(p);
+      setSlots(s);
+      setExamResults(e);
+    }).catch(() => {}).finally(() => setLoading(false));
   }, [user.id]);
 
   if (loading) return <div className="p-8"><Spinner /></div>;
 
-  const presences = attendanceRecords.filter(r => r.status === 'validated' || r.status === 'pending').length;
-  const total = attendanceRecords.length;
-  const faltas = total - presences;
+  const purchased = profile?.purchased_lessons ?? 0;
+  const used      = slots.filter(s => CHARGED.has(s.status)).length;
+  const balance   = purchased - used;
 
-  const statusIcon = (status) => {
-    if (status === 'validated') return { icon: '✓', color: 'text-green-600' };
-    if (status === 'pending') return { icon: '✓', color: 'text-yellow-600' };
-    return { icon: '✗', color: 'text-red-500' };
-  };
+  const history = slots
+    .filter(s => s.status !== 'scheduled')
+    .sort((a, b) => b.scheduled_date.localeCompare(a.scheduled_date));
 
   return (
     <div>
@@ -57,9 +49,9 @@ export const StudentProgressScreen = ({ user }) => {
 
       <div className="grid grid-cols-3 gap-4 mb-6">
         {[
-          { label: 'aulas', value: total, color: 'bg-blue-50 text-blue-700' },
-          { label: 'presenças', value: presences, color: 'bg-green-50 text-green-700' },
-          { label: 'faltas', value: faltas, color: 'bg-orange-50 text-orange-700' },
+          { label: 'compradas',  value: purchased, color: 'bg-blue-50 text-blue-700'   },
+          { label: 'utilizadas', value: used,      color: 'bg-purple-50 text-purple-700'},
+          { label: 'restantes',  value: balance,   color: balance > 0 ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700' },
         ].map(stat => (
           <div key={stat.label} className={`${stat.color} rounded-xl p-4 text-center`}>
             <p className="text-3xl font-bold">{stat.value}</p>
@@ -68,36 +60,41 @@ export const StudentProgressScreen = ({ user }) => {
         ))}
       </div>
 
-      {examGrade !== null && (
-        <div className={`mb-6 border rounded-xl px-4 py-3 flex justify-between items-center ${examGrade.score === 10 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-          <div>
-            <p className={`font-semibold ${examGrade.score === 10 ? 'text-green-800' : 'text-red-800'}`}>Exame Prático</p>
-            <p className={`text-sm ${examGrade.score === 10 ? 'text-green-600' : 'text-red-600'}`}>
-              {examGrade.score === 10 ? 'Aprovado' : 'Reprovado'}
-            </p>
-          </div>
-          <span className={`text-2xl font-bold ${examGrade.score === 10 ? 'text-green-600' : 'text-red-600'}`}>
-            {examGrade.score === 10 ? '✓' : '✗'}
-          </span>
+      {examResults.length > 0 && (
+        <div className="mb-6 space-y-2">
+          {examResults.map(exam => (
+            <div key={exam.id}
+              className={`border rounded-xl px-4 py-3 flex justify-between items-center ${exam.result === 'pass' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+              <div>
+                <p className={`font-semibold ${exam.result === 'pass' ? 'text-green-800' : 'text-red-800'}`}>Exame Prático</p>
+                <p className={`text-sm ${exam.result === 'pass' ? 'text-green-600' : 'text-red-600'}`}>
+                  {exam.result === 'pass' ? 'Aprovado' : 'Reprovado'} · {exam.exam_date}
+                </p>
+                {exam.notes && <p className="text-xs text-gray-500 mt-0.5">{exam.notes}</p>}
+              </div>
+              <span className={`text-2xl font-bold ${exam.result === 'pass' ? 'text-green-600' : 'text-red-600'}`}>
+                {exam.result === 'pass' ? '✓' : '✗'}
+              </span>
+            </div>
+          ))}
         </div>
       )}
 
       <Card>
         <h3 className="font-semibold text-gray-800 mb-4">Histórico de Aulas</h3>
-        {attendanceRecords.length === 0 ? (
+        {history.length === 0 ? (
           <p className="text-gray-400 text-center py-6">Nenhuma aula registrada ainda.</p>
         ) : (
           <div className="space-y-2">
-            {attendanceRecords.map(record => {
-              const { icon, color } = statusIcon(record.status);
+            {history.map(slot => {
+              const { icon, color } = STATUS_ICON[slot.status] ?? { icon: '·', color: 'text-gray-400' };
               return (
-                <div key={record.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
-                  <span className="text-gray-400 text-sm w-16 shrink-0">
-                    {new Date(record.attendance_date + 'T12:00:00Z').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                <div key={slot.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
+                  <span className="text-gray-400 text-sm w-20 shrink-0">
+                    {new Date(`${slot.scheduled_date}T12:00:00Z`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                   </span>
-                  <span className="flex-1 text-sm text-gray-700">
-                    {record.plate ? `Placa: ${record.plate}` : '—'}
-                  </span>
+                  <span className="text-sm text-gray-500 shrink-0">{slot.start_time?.substring(0, 5)}</span>
+                  <span className="flex-1 text-sm text-gray-700">{slot.instructor_name ?? '—'}</span>
                   <span className={`font-bold ${color}`}>{icon}</span>
                 </div>
               );
