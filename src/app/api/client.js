@@ -1,8 +1,5 @@
 'use client';
 
-/**
- * Custom error class for API errors
- */
 export class ApiError extends Error {
   constructor(message, status) {
     super(message);
@@ -11,221 +8,92 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Base URL for API requests
- * Uses environment variable or defaults to localhost
- */
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-/**
- * Helper function to make API requests
- * Handles authentication, headers, error handling
- */
 async function request(endpoint, options = {}) {
   const { method = 'GET', body = null, ...restOptions } = options;
-
-  // Get auth token from localStorage
   const authToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
-
-  // Prepare headers
-  const headers = {
-    'Content-Type': 'application/json',
-    ...restOptions.headers,
-  };
-
-  // Add Authorization header if token exists
-  if (authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`;
-  }
-
-  // Make the request
-  const url = `${API_URL}${endpoint}`;
-  const fetchOptions = {
-    method,
-    headers,
-    ...restOptions,
-  };
-
-  if (body) {
-    fetchOptions.body = JSON.stringify(body);
-  }
-
-  const response = await fetch(url, fetchOptions);
-
-  // Handle error responses
+  const headers = { 'Content-Type': 'application/json', ...restOptions.headers };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  const fetchOptions = { method, headers, ...restOptions };
+  if (body) fetchOptions.body = JSON.stringify(body);
+  const response = await fetch(`${API_URL}${endpoint}`, fetchOptions);
   if (!response.ok) {
     let errorMessage = `API Error: ${response.statusText}`;
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData.message || errorMessage;
-    } catch (e) {
-      // Response is not JSON, use status text
-    }
+    try { const err = await response.json(); errorMessage = err.message || errorMessage; } catch {}
     throw new ApiError(errorMessage, response.status);
   }
-
-  // Parse and return response
-  try {
-    return await response.json();
-  } catch (e) {
-    // If response is not JSON (e.g., 204 No Content), return null
-    return null;
-  }
+  try { return await response.json(); } catch { return null; }
 }
 
-/**
- * API client object with all available endpoints
- */
+const list = (path, params = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  return request(`${path}${qs ? '?' + qs : ''}`).then(r => Array.isArray(r) ? r : (r?.data ?? []));
+};
+
 export const api = {
-  // Authentication
-  login: (email, password) =>
-    request('/auth/login', {
-      method: 'POST',
-      body: { email, password },
-    }),
+  login:  (email, password) => request('/auth/login', { method: 'POST', body: { email, password } }),
+  logout: () => request('/auth/logout', { method: 'POST' }),
+  getMe:  () => request('/auth/me'),
 
-  logout: () =>
-    request('/auth/logout', {
-      method: 'POST',
-    }),
+  getUsers:     () => request('/users').then(r => r?.data ?? []),
+  getUser:      (id) => request(`/users/${id}`),
+  createUser:   (data) => request('/users', { method: 'POST', body: data }),
+  updateUser:   (id, data) => request(`/users/${id}`, { method: 'PUT', body: data }),
+  deleteUser:   (id) => request(`/users/${id}`, { method: 'DELETE' }),
 
-  getMe: () =>
-    request('/auth/me', {
-      method: 'GET',
-    }),
-
-  // Users
-  getUsers: () => request('/users').then((r) => r.data),
-
-  getUser: (id) =>
-    request(`/users/${id}`, {
-      method: 'GET',
-    }),
-
-  createUser: (data) =>
-    request('/users', {
-      method: 'POST',
-      body: data,
-    }),
-
-  updateUser: (id, data) =>
-    request(`/users/${id}`, {
-      method: 'PUT',
-      body: data,
-    }),
-
-  deleteUser: (id) =>
-    request(`/users/${id}`, {
-      method: 'DELETE',
-    }),
-
-  // Classes
-  getClasses: () => request('/classes').then((r) => r.data),
-
-  getClass: (id) =>
-    request(`/classes/${id}`, {
-      method: 'GET',
-    }),
-
-  createClass: (data) =>
-    request('/classes', {
-      method: 'POST',
-      body: data,
-    }),
-
-  updateClass: (id, data) =>
-    request(`/classes/${id}`, {
-      method: 'PUT',
-      body: data,
-    }),
-
-  deleteClass: (id) =>
-    request(`/classes/${id}`, {
-      method: 'DELETE',
-    }),
-
-  // Schedules
-  getSchedules: (params = {}) => {
-    const queryString = new URLSearchParams(params).toString();
-    const endpoint = queryString ? `/schedules?${queryString}` : '/schedules';
-    return request(endpoint).then((r) => r.data);
+  lessonSlots: {
+    list:        (params = {}) => list('/lesson-slots', params),
+    get:         (id) => request(`/lesson-slots/${id}`),
+    create:      (data) => request('/lesson-slots', { method: 'POST', body: data }),
+    createBatch: (data) => request('/lesson-slots/batch', { method: 'POST', body: data }),
+    checkin:     (id, plateAtCheckin) => request(`/lesson-slots/${id}/checkin`, { method: 'PUT', body: { plate_at_checkin: plateAtCheckin } }),
+    noShow:      (id) => request(`/lesson-slots/${id}/no-show`, { method: 'PUT' }),
+    cancel:      (id) => request(`/lesson-slots/${id}/cancel`, { method: 'PUT' }),
+    reschedule:  (id, data) => request(`/lesson-slots/${id}/reschedule`, { method: 'PUT', body: data }),
+    absence:     (id) => request(`/lesson-slots/${id}/absence`, { method: 'POST' }),
   },
 
-  getSchedule: (id) =>
-    request(`/schedules/${id}`, {
-      method: 'GET',
-    }),
-
-  createSchedule: (data) =>
-    request('/schedules', {
-      method: 'POST',
-      body: data,
-    }),
-
-  updateSchedule: (id, data) =>
-    request(`/schedules/${id}`, {
-      method: 'PUT',
-      body: data,
-    }),
-
-  deleteSchedule: (id) =>
-    request(`/schedules/${id}`, {
-      method: 'DELETE',
-    }),
-
-  // Enrollments
-  getEnrollments: (params = {}) => {
-    const queryString = new URLSearchParams(params).toString();
-    const endpoint = queryString ? `/enrollments?${queryString}` : '/enrollments';
-    return request(endpoint).then((r) => r.data);
+  slots: {
+    available: (params = {}) => {
+      const qs = new URLSearchParams(params).toString();
+      return request(`/slots/available${qs ? '?' + qs : ''}`).then(r => Array.isArray(r) ? r : []);
+    },
   },
 
-  createEnrollment: (data) =>
-    request('/enrollments', {
-      method: 'POST',
-      body: data,
-    }),
-
-  deleteEnrollment: (id) =>
-    request(`/enrollments/${id}`, {
-      method: 'DELETE',
-    }),
-
-  assignments: {
-    list: (params = {}) => request(`/assignments?${new URLSearchParams(params)}`).then(r => r.data),
-    create: (data) => request('/assignments', { method: 'POST', body: data }),
-    update: (id, data) => request(`/assignments/${id}`, { method: 'PUT', body: data }),
+  examResults: {
+    list:   (params = {}) => list('/exam-results', params),
+    create: (data) => request('/exam-results', { method: 'POST', body: data }),
+    update: (id, data) => request(`/exam-results/${id}`, { method: 'PUT', body: data }),
+    delete: (id) => request(`/exam-results/${id}`, { method: 'DELETE' }),
   },
 
-  grades: {
-    list: (params = {}) => request(`/grades?${new URLSearchParams(params)}`).then(r => r.data),
-    create: (data) => request('/grades', { method: 'POST', body: data }),
-    update: (id, data) => request(`/grades/${id}`, { method: 'PUT', body: data }),
+  vehicles: {
+    list:   () => list('/vehicles'),
+    create: (data) => request('/vehicles', { method: 'POST', body: data }),
+    update: (id, data) => request(`/vehicles/${id}`, { method: 'PUT', body: data }),
+    delete: (id) => request(`/vehicles/${id}`, { method: 'DELETE' }),
   },
 
-  attendance: {
-    list: (params = {}) => request(`/attendance?${new URLSearchParams(params)}`).then(r => r.data),
-    mark: (data) => request('/attendance', { method: 'POST', body: data }),
-    validate: (id) => request(`/attendance/${id}/validate`, { method: 'PUT' }),
+  instructors: {
+    vehicles: {
+      list:   (instructorId) => request(`/instructors/${instructorId}/vehicles`).then(r => Array.isArray(r) ? r : []),
+      add:    (instructorId, vehicleId) => request(`/instructors/${instructorId}/vehicles`, { method: 'POST', body: { vehicle_id: vehicleId } }),
+      remove: (instructorId, vehicleId) => request(`/instructors/${instructorId}/vehicles/${vehicleId}`, { method: 'DELETE' }),
+    },
+    availability: {
+      list:   (instructorId) => request(`/instructors/${instructorId}/availability`).then(r => Array.isArray(r) ? r : []),
+      add:    (instructorId, data) => request(`/instructors/${instructorId}/availability`, { method: 'POST', body: data }),
+      delete: (instructorId, windowId) => request(`/instructors/${instructorId}/availability/${windowId}`, { method: 'DELETE' }),
+    },
   },
 
   notifications: {
-    getPreferences: () => request('/notifications/preferences'),
+    getPreferences:    () => request('/notifications/preferences'),
     updatePreferences: (data) => request('/notifications/preferences', { method: 'PUT', body: data }),
-    list: (params = {}) => request(`/notifications?${new URLSearchParams(params)}`).then(r => r.data),
-    unreadCount: () => request('/notifications/unread-count'),
-    markRead: (id) => request(`/notifications/${id}/read`, { method: 'PUT' }),
-    markAllRead: () => request('/notifications/read-all', { method: 'PUT' }),
-  },
-
-  cancellations: {
-    create: (scheduleId, data) => request(`/schedules/${scheduleId}/cancel`, { method: 'POST', body: data }),
-    delete: (scheduleId, date) => request(`/schedules/${scheduleId}/cancel/${date}`, { method: 'DELETE' }),
-    list: (scheduleId) => request(`/schedules/${scheduleId}/cancellations`).then(r => r.data),
-  },
-
-  absences: {
-    declare: (scheduleId, data) => request(`/schedules/${scheduleId}/absence`, { method: 'POST', body: data }),
-    list: (scheduleId) => request(`/schedules/${scheduleId}/absences`).then(r => r.data),
+    list:              (params = {}) => list('/notifications', params),
+    unreadCount:       () => request('/notifications/unread-count'),
+    markRead:          (id) => request(`/notifications/${id}/read`, { method: 'PUT' }),
+    markAllRead:       () => request('/notifications/read-all', { method: 'PUT' }),
   },
 };
