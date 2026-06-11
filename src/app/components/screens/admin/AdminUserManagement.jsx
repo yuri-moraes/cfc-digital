@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { UserPlus } from 'lucide-react';
 import { Card } from '@/app/components/ui/Card';
 import { Button } from '@/app/components/ui/Button';
@@ -40,7 +40,7 @@ export const AdminUserManagement = ({ showToast }) => {
   const [selectedFleetId, setSelectedFleetId] = useState('');
   const [savingVehicle, setSavingVehicle] = useState(false);
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setUsers(await api.getUsers());
     } catch {
@@ -48,9 +48,9 @@ export const AdminUserManagement = ({ showToast }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
-  useEffect(() => { loadUsers(); }, []);
+  useEffect(() => { loadUsers(); }, [loadUsers]);
 
   const openAdd = () => {
     const pin = String(Math.floor(1000 + Math.random() * 9000));
@@ -126,7 +126,7 @@ export const AdminUserManagement = ({ showToast }) => {
     setSavingVehicle(true);
     try {
       await api.instructors.vehicles.add(instrModal.instructor.id, selectedFleetId);
-      const v = instrModal.fleet.find(x => x.id === selectedFleetId);
+      const v = instrModal.fleet.find(x => String(x.id) === String(selectedFleetId));
       setInstrModal(p => ({ ...p, vehicles: [...p.vehicles, v] }));
       setSelectedFleetId('');
       showToast('Veículo vinculado.', 'success');
@@ -217,7 +217,7 @@ export const AdminUserManagement = ({ showToast }) => {
           </div>
           <div className="flex gap-3 pt-2">
             <Button variant="secondary" onClick={() => setAddModal(false)}>Cancelar</Button>
-            <Button variant="primary" onClick={handleAdd}>{saving ? 'Salvando...' : 'Criar usuário'}</Button>
+            <Button variant="primary" onClick={handleAdd} disabled={saving}>{saving ? 'Salvando...' : 'Criar usuário'}</Button>
           </div>
         </div>
       </Modal>
