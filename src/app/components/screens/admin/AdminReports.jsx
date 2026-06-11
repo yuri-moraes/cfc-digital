@@ -38,8 +38,7 @@ export const AdminReports = () => {
         const slots = await api.lessonSlots.list({ limit: 500 });
         const monthStr = `${currentYear}-${String(selectedMonth).padStart(2, '0')}`;
         const filtered = slots.filter(s =>
-          // eslint-disable-next-line eqeqeq
-          s.instructor_id == selectedInstructorId &&
+          s.instructor_id === selectedInstructorId &&
           s.status === 'completed' &&
           s.scheduled_date?.startsWith(monthStr)
         );
@@ -76,7 +75,7 @@ export const AdminReports = () => {
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Relatórios</h2>
       <Card>
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <select value={selectedInstructorId} onChange={e => setSelectedInstructorId(e.target.value)}
+          <select value={selectedInstructorId} onChange={e => setSelectedInstructorId(Number(e.target.value))}
             className="w-full px-4 text-black py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             {instructors.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
           </select>
