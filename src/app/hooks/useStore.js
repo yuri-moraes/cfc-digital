@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { api, ApiError } from '@/app/api/client';
 
+const ROLE_TO_TYPE = { ADMIN: 'Admin', INSTRUCTOR: 'Instrutor', STUDENT: 'Aluno' };
+
 export const useStore = () => {
   const [user, setUser] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -10,8 +12,8 @@ export const useStore = () => {
 
   const refreshUnreadCount = async () => {
     try {
-      const { count } = await api.notifications.unreadCount();
-      setUnreadCount(count);
+      const data = await api.notifications.unreadCount();
+      setUnreadCount(data?.count ?? 0);
     } catch {}
   };
 
@@ -19,8 +21,6 @@ export const useStore = () => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
   };
-
-  const ROLE_TO_TYPE = { ADMIN: 'Admin', INSTRUCTOR: 'Instrutor', STUDENT: 'Aluno' };
 
   const login = async (email, password) => {
     try {

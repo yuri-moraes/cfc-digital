@@ -11,12 +11,12 @@ export class ApiError extends Error {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 async function request(endpoint, options = {}) {
-  const { method = 'GET', body = null, ...restOptions } = options;
+  const { method = 'GET', body = null, headers: extraHeaders = {}, ...restOptions } = options;
   const authToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
-  const headers = { 'Content-Type': 'application/json', ...restOptions.headers };
+  const headers = { 'Content-Type': 'application/json', ...extraHeaders };
   if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
   const fetchOptions = { method, headers, ...restOptions };
-  if (body) fetchOptions.body = JSON.stringify(body);
+  if (body !== null) fetchOptions.body = JSON.stringify(body);
   const response = await fetch(`${API_URL}${endpoint}`, fetchOptions);
   if (!response.ok) {
     let errorMessage = `API Error: ${response.statusText}`;
