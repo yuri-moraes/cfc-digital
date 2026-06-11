@@ -67,7 +67,7 @@ src/app/
 
 ## Development Notes
 
-- **No backend**: This is a frontend-only prototype with mocked data. Any API integration should replace mock data imports.
+- **Backend**: All screens call the Express API at `http://localhost:3001/api`. Auth token stored in `localStorage`. `mockData.js` and class/enrollment concepts have been removed.
 - **Client-only app**: All components marked with `'use client'` directive
 - **Navigation state**: Managed via `activeView` state in MainLayout; not using Next.js routing or URL params
 - **Toast notifications**: Managed globally via `useStore` showToast; auto-dismisses after 3 seconds
