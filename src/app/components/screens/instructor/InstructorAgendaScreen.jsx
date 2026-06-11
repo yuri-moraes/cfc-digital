@@ -115,7 +115,7 @@ export const InstructorAgendaScreen = ({ user, showToast }) => {
                       className="border border-gray-300 rounded px-2 py-1 text-sm w-28"
                     />
                     <div className="ml-auto flex gap-2">
-                      <button onClick={() => handleCheckin(slot)} disabled={!!acting[slot.id]}
+                      <button onClick={() => handleCheckin(slot)} disabled={!!acting[slot.id] || !plates[slot.id]?.trim()}
                         className="bg-green-100 text-green-800 border border-green-300 rounded px-3 py-1 text-sm font-medium hover:bg-green-200 disabled:opacity-50">
                         {acting[slot.id] === 'checkin' ? '...' : '✓ Check-in'}
                       </button>
