@@ -82,11 +82,11 @@ export const InstructorAgendaScreen = ({ user, showToast }) => {
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Minha Agenda</h2>
       <Card>
         <div className="flex justify-between items-center mb-6">
-          <button onClick={() => changeDay(-1)} className="p-2 rounded-full hover:bg-gray-100"><ChevronLeft /></button>
+          <button aria-label="Dia anterior" onClick={() => changeDay(-1)} className="p-2 rounded-full hover:bg-gray-100"><ChevronLeft /></button>
           <h3 className="text-lg font-semibold capitalize">
             {currentDate.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
           </h3>
-          <button onClick={() => changeDay(1)} className="p-2 rounded-full hover:bg-gray-100"><ChevronRight /></button>
+          <button aria-label="Próximo dia" onClick={() => changeDay(1)} className="p-2 rounded-full hover:bg-gray-100"><ChevronRight /></button>
         </div>
 
         {isLoading ? (
