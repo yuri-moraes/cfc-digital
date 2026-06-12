@@ -27,7 +27,7 @@ const STATUS_COLORS = {
   absent_charged: 'bg-orange-100 text-orange-700',
 };
 
-export const StudentScheduleScreen = ({ user, showToast, refreshUnreadCount }) => {
+export const StudentScheduleScreen = ({ showToast, refreshUnreadCount }) => {
   const [slots, setSlots] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [absenceModal, setAbsenceModal] = useState({ open: false, slot: null });
@@ -69,20 +69,23 @@ export const StudentScheduleScreen = ({ user, showToast, refreshUnreadCount }) =
   };
 
   const handleBook = async (slot) => {
-    const key = `${slot.scheduled_date}-${slot.start_time}-${slot.instructor_id}`;
+    const key = `${slot.date}-${slot.start_time}-${slot.instructor_id}`;
     setBookingSlotKey(key);
     try {
       await api.lessonSlots.create({
         instructor_id:  slot.instructor_id,
         vehicle_id:     slot.vehicle_id,
-        scheduled_date: slot.scheduled_date,
+        scheduled_date: slot.date,
         start_time:     slot.start_time,
       });
       showToast('Aula agendada com sucesso!', 'success');
       setBookingModal(false);
       loadSlots();
     } catch (err) {
-      showToast(err.message || 'Erro ao agendar aula.', 'error');
+      const msg = err.message === 'No remaining lesson balance'
+        ? 'Saldo de aulas insuficiente. Fale com o administrador para adquirir mais aulas.'
+        : err.message || 'Erro ao agendar aula.';
+      showToast(msg, 'error');
     } finally {
       setBookingSlotKey(null);
     }
@@ -110,8 +113,8 @@ export const StudentScheduleScreen = ({ user, showToast, refreshUnreadCount }) =
   };
 
   const availableByDate = availableSlots.reduce((acc, s) => {
-    if (!acc[s.scheduled_date]) acc[s.scheduled_date] = [];
-    acc[s.scheduled_date].push(s);
+    if (!acc[s.date]) acc[s.date] = [];
+    acc[s.date].push(s);
     return acc;
   }, {});
 
@@ -194,7 +197,7 @@ export const StudentScheduleScreen = ({ user, showToast, refreshUnreadCount }) =
                     {dateSlots
                       .sort((a, b) => a.start_time.localeCompare(b.start_time))
                       .map((slot) => {
-                        const key = `${slot.scheduled_date}-${slot.start_time}-${slot.instructor_id}`;
+                        const key = `${slot.date}-${slot.start_time}-${slot.instructor_id}`;
                         return (
                           <div key={key}
                             className="flex justify-between items-center bg-green-50 border border-green-100 rounded-lg px-3 py-2">

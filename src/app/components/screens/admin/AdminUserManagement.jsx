@@ -28,6 +28,8 @@ export const AdminUserManagement = ({ showToast }) => {
 
   // Student detail modal
   const [studentModal, setStudentModal] = useState({ open: false, user: null });
+  const [studentEdit, setStudentEdit] = useState({ purchased_lessons: '0', category: 'B' });
+  const [savingStudent, setSavingStudent] = useState(false);
 
   // Instructor detail modal
   const [instrModal, setInstrModal] = useState({
@@ -127,7 +129,7 @@ export const AdminUserManagement = ({ showToast }) => {
     try {
       await api.instructors.vehicles.add(instrModal.instructor.id, selectedFleetId);
       const v = instrModal.fleet.find(x => String(x.id) === String(selectedFleetId));
-      setInstrModal(p => ({ ...p, vehicles: [...p.vehicles, v] }));
+      setInstrModal(p => ({ ...p, vehicles: [...p.vehicles, { id: null, vehicle_id: v.id, plate: v.plate, model: v.model, year: v.year }] }));
       setSelectedFleetId('');
       showToast('Veículo vinculado.', 'success');
     } catch (err) {
@@ -183,7 +185,7 @@ export const AdminUserManagement = ({ showToast }) => {
             {students.map(u => (
               <div key={u.id} className="flex justify-between items-center p-3 rounded hover:bg-gray-50">
                 <div><p className="font-medium text-gray-900">{u.name}</p><p className="text-sm text-gray-500">{u.email}</p></div>
-                <button onClick={() => setStudentModal({ open: true, user: u })} className="text-blue-600 text-sm font-semibold hover:text-blue-700">Ver detalhes</button>
+                <button onClick={() => { setStudentModal({ open: true, user: u }); setStudentEdit({ purchased_lessons: String(u.purchased_lessons ?? 0), category: u.category ?? 'B' }); }} className="text-blue-600 text-sm font-semibold hover:text-blue-700">Ver detalhes</button>
               </div>
             ))}
           </Card>
@@ -228,8 +230,36 @@ export const AdminUserManagement = ({ showToast }) => {
           <div className="space-y-3">
             <p className="text-sm text-gray-600">Email: <span className="text-gray-900">{studentModal.user.email}</span></p>
             {studentModal.user.phone_number && <p className="text-sm text-gray-600">Telefone: <span className="text-gray-900">{studentModal.user.phone_number}</span></p>}
-            <p className="text-sm text-gray-600">Categoria: <span className="text-gray-900">{studentModal.user.category ?? '—'}</span></p>
-            <p className="text-sm text-gray-600">Aulas contratadas: <span className="text-gray-900">{studentModal.user.purchased_lessons ?? 0}</span></p>
+            <div className="border-t border-gray-100 pt-3 space-y-3">
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Aulas contratadas</label>
+                <Input id="student-lessons" type="number" min="0" value={studentEdit.purchased_lessons}
+                  onChange={e => setStudentEdit(p => ({ ...p, purchased_lessons: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Categoria</label>
+                <select value={studentEdit.category} onChange={e => setStudentEdit(p => ({ ...p, category: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900">
+                  {['A', 'B', 'AB', 'C', 'D', 'E'].map(c => <option key={c} value={c}>Categoria {c}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-3 pt-1">
+              <Button variant="secondary" onClick={() => setStudentModal({ open: false, user: null })}>Fechar</Button>
+              <Button variant="primary" disabled={savingStudent} onClick={async () => {
+                setSavingStudent(true);
+                try {
+                  await api.updateUser(studentModal.user.id, { purchased_lessons: Number(studentEdit.purchased_lessons), category: studentEdit.category });
+                  showToast('Aluno atualizado.', 'success');
+                  setStudentModal({ open: false, user: null });
+                  loadUsers();
+                } catch (err) {
+                  showToast(err.message || 'Erro ao atualizar aluno.', 'error');
+                } finally {
+                  setSavingStudent(false);
+                }
+              }}>{savingStudent ? 'Salvando...' : 'Salvar'}</Button>
+            </div>
           </div>
         )}
       </Modal>
