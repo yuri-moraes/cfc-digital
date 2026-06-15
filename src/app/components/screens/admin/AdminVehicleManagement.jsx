@@ -72,9 +72,9 @@ export const AdminVehicleManagement = ({ showToast }) => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Veículos</h2>
-        <Button onClick={openCreate} variant="primary" className="flex items-center gap-2 w-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Veículos</h2>
+        <Button onClick={openCreate} variant="primary" className="sm:w-auto flex items-center justify-center gap-2">
           <Plus size={18} /> Novo veículo
         </Button>
       </div>
@@ -85,19 +85,19 @@ export const AdminVehicleManagement = ({ showToast }) => {
         ) : (
           <div className="divide-y divide-gray-100">
             {vehicles.map(v => (
-              <div key={v.id} className="flex justify-between items-center py-3 px-1">
-                <div className="flex items-center gap-3">
-                  <Car size={18} className="text-gray-400" />
-                  <div>
+              <div key={v.id} className="flex justify-between items-center py-3 px-1 gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Car size={18} className="text-gray-400 shrink-0" />
+                  <div className="min-w-0">
                     <p className="font-medium text-gray-900">{v.plate}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 truncate">
                       {v.model}{v.year ? ` · ${v.year}` : ''} · Cat. {v.category}{v.color ? ` · ${v.color}` : ''}
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => openEdit(v)} className="text-blue-500 hover:text-blue-700 p-1"><Pencil size={16} /></button>
-                  <button onClick={() => setDeleteConfirm(v)} className="text-red-400 hover:text-red-600 p-1"><Trash2 size={16} /></button>
+                <div className="flex gap-2 shrink-0">
+                  <button onClick={() => openEdit(v)} className="text-blue-500 hover:text-blue-700 p-2 rounded"><Pencil size={16} /></button>
+                  <button onClick={() => setDeleteConfirm(v)} className="text-red-400 hover:text-red-600 p-2 rounded"><Trash2 size={16} /></button>
                 </div>
               </div>
             ))}
