@@ -110,9 +110,9 @@ export const InstructorTestResultScreen = ({ user, showToast }) => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Exame Prático</h2>
-        <Button onClick={openCreate} variant="primary" className="flex items-center gap-2 w-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Exame Prático</h2>
+        <Button onClick={openCreate} variant="primary" className="sm:w-auto flex items-center justify-center gap-2">
           <Plus size={18} /> Novo resultado
         </Button>
       </div>
@@ -123,17 +123,17 @@ export const InstructorTestResultScreen = ({ user, showToast }) => {
         ) : (
           <div className="divide-y divide-gray-100">
             {results.map(r => (
-              <div key={r.id} className="flex justify-between items-center py-3 px-1">
-                <div>
-                  <p className="font-medium text-gray-800">{studentName(r.student_id)}</p>
+              <div key={r.id} className="flex justify-between items-center py-3 px-1 gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-800 truncate">{studentName(r.student_id)}</p>
                   <p className="text-sm text-gray-500">{r.exam_date}{r.vehicle_id ? ` · ${vehiclePlate(r.vehicle_id)}` : ''}</p>
-                  {r.notes && <p className="text-xs text-gray-400 mt-0.5">{r.notes}</p>}
+                  {r.notes && <p className="text-xs text-gray-400 mt-0.5 truncate">{r.notes}</p>}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 shrink-0">
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${r.result === 'pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                     {r.result === 'pass' ? '✓ Aprovado' : '✗ Reprovado'}
                   </span>
-                  <button onClick={() => openEdit(r)} className="text-blue-500 hover:text-blue-700 text-sm">Editar</button>
+                  <button onClick={() => openEdit(r)} className="text-blue-500 hover:text-blue-700 text-sm py-2 px-2 -mr-2 rounded">Editar</button>
                 </div>
               </div>
             ))}
