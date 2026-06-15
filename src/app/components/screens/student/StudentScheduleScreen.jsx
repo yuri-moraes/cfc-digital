@@ -127,9 +127,9 @@ export const StudentScheduleScreen = ({ showToast, refreshUnreadCount }) => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Meu Horário</h2>
-        <Button onClick={openBooking} variant="primary" className="flex items-center gap-2 w-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Meu Horário</h2>
+        <Button onClick={openBooking} variant="primary" className="sm:w-auto flex items-center justify-center gap-2">
           <PlusCircle size={18} /> Agendar nova aula
         </Button>
       </div>

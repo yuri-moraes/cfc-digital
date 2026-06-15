@@ -158,9 +158,9 @@ export const AdminUserManagement = ({ showToast }) => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Gerenciar Usuários</h2>
-        <Button onClick={openAdd} variant="primary" className="flex items-center gap-2 w-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Gerenciar Usuários</h2>
+        <Button onClick={openAdd} variant="primary" className="sm:w-auto flex items-center justify-center gap-2">
           <UserPlus size={18} /> Novo Usuário
         </Button>
       </div>
@@ -171,9 +171,12 @@ export const AdminUserManagement = ({ showToast }) => {
           <Card className="space-y-2">
             {instructors.length === 0 && <p className="text-gray-400 text-sm py-2">Nenhum instrutor cadastrado.</p>}
             {instructors.map(u => (
-              <div key={u.id} className="flex justify-between items-center p-3 rounded hover:bg-gray-50">
-                <div><p className="font-medium text-gray-900">{u.name}</p><p className="text-sm text-gray-500">{u.email}</p></div>
-                <button onClick={() => openInstructor(u)} className="text-blue-600 text-sm font-semibold hover:text-blue-700">Ver detalhes</button>
+              <div key={u.id} className="flex justify-between items-center p-3 rounded hover:bg-gray-50 gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-900 truncate">{u.name}</p>
+                  <p className="text-sm text-gray-500 truncate">{u.email}</p>
+                </div>
+                <button onClick={() => openInstructor(u)} className="text-blue-600 text-sm font-semibold hover:text-blue-700 shrink-0 py-2 px-2 -mr-2 rounded">Ver detalhes</button>
               </div>
             ))}
           </Card>
@@ -183,9 +186,12 @@ export const AdminUserManagement = ({ showToast }) => {
           <Card className="space-y-2">
             {students.length === 0 && <p className="text-gray-400 text-sm py-2">Nenhum aluno cadastrado.</p>}
             {students.map(u => (
-              <div key={u.id} className="flex justify-between items-center p-3 rounded hover:bg-gray-50">
-                <div><p className="font-medium text-gray-900">{u.name}</p><p className="text-sm text-gray-500">{u.email}</p></div>
-                <button onClick={() => { setStudentModal({ open: true, user: u }); setStudentEdit({ purchased_lessons: String(u.purchased_lessons ?? 0), category: u.category ?? 'B' }); }} className="text-blue-600 text-sm font-semibold hover:text-blue-700">Ver detalhes</button>
+              <div key={u.id} className="flex justify-between items-center p-3 rounded hover:bg-gray-50 gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-900 truncate">{u.name}</p>
+                  <p className="text-sm text-gray-500 truncate">{u.email}</p>
+                </div>
+                <button onClick={() => { setStudentModal({ open: true, user: u }); setStudentEdit({ purchased_lessons: String(u.purchased_lessons ?? 0), category: u.category ?? 'B' }); }} className="text-blue-600 text-sm font-semibold hover:text-blue-700 shrink-0 py-2 px-2 -mr-2 rounded">Ver detalhes</button>
               </div>
             ))}
           </Card>
@@ -290,11 +296,11 @@ export const AdminUserManagement = ({ showToast }) => {
                   <p className="text-sm text-gray-400">Nenhuma janela de disponibilidade.</p>
                 )}
                 {instrModal.availability.map(w => (
-                  <div key={w.id} className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2">
-                    <span className="text-sm text-gray-700">
+                  <div key={w.id} className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2 gap-2">
+                    <span className="text-sm text-gray-700 min-w-0 truncate">
                       {DAY_OPTIONS.find(d => d.value === w.day_of_week)?.label ?? w.day_of_week} · {w.start_time?.substring(0, 5)} – {w.end_time?.substring(0, 5)} · {w.plate}
                     </span>
-                    <button onClick={() => handleDeleteAvailability(w.id)} className="text-red-400 hover:text-red-600 text-xs ml-2">Remover</button>
+                    <button onClick={() => handleDeleteAvailability(w.id)} className="text-red-400 hover:text-red-600 text-xs shrink-0 py-2 px-2 -mr-2 rounded">Remover</button>
                   </div>
                 ))}
                 {showAvailForm ? (
@@ -324,7 +330,7 @@ export const AdminUserManagement = ({ showToast }) => {
                     </div>
                   </div>
                 ) : (
-                  <button onClick={() => setShowAvailForm(true)} className="text-blue-600 text-sm hover:underline">+ Adicionar janela</button>
+                  <button onClick={() => setShowAvailForm(true)} className="text-blue-600 text-sm hover:underline py-2 px-1 -ml-1 rounded">+ Adicionar janela</button>
                 )}
               </div>
             )}
@@ -333,9 +339,9 @@ export const AdminUserManagement = ({ showToast }) => {
               <div className="space-y-3">
                 {instrModal.vehicles.length === 0 && <p className="text-sm text-gray-400">Nenhum veículo vinculado.</p>}
                 {instrModal.vehicles.map(v => (
-                  <div key={v.vehicle_id} className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2">
-                    <span className="text-sm text-gray-700">{v.plate} · {v.model}</span>
-                    <button onClick={() => handleRemoveVehicle(v.vehicle_id)} className="text-red-400 hover:text-red-600 text-xs">Remover</button>
+                  <div key={v.vehicle_id} className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2 gap-2">
+                    <span className="text-sm text-gray-700 min-w-0 truncate">{v.plate} · {v.model}</span>
+                    <button onClick={() => handleRemoveVehicle(v.vehicle_id)} className="text-red-400 hover:text-red-600 text-xs shrink-0 py-2 px-2 -mr-2 rounded">Remover</button>
                   </div>
                 ))}
                 {unassignedFleet.length > 0 ? (
