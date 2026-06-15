@@ -82,11 +82,11 @@ export const InstructorAgendaScreen = ({ user, showToast }) => {
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Minha Agenda</h2>
       <Card>
         <div className="flex justify-between items-center mb-6">
-          <button aria-label="Dia anterior" onClick={() => changeDay(-1)} className="p-2 rounded-full hover:bg-gray-100"><ChevronLeft /></button>
-          <h3 className="text-lg font-semibold capitalize">
+          <button aria-label="Dia anterior" onClick={() => changeDay(-1)} className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 shrink-0"><ChevronLeft /></button>
+          <h3 className="text-sm sm:text-base font-semibold capitalize flex-1 min-w-0 text-center px-2 truncate">
             {currentDate.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
           </h3>
-          <button aria-label="Próximo dia" onClick={() => changeDay(1)} className="p-2 rounded-full hover:bg-gray-100"><ChevronRight /></button>
+          <button aria-label="Próximo dia" onClick={() => changeDay(1)} className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 shrink-0"><ChevronRight /></button>
         </div>
 
         {isLoading ? (
@@ -106,21 +106,23 @@ export const InstructorAgendaScreen = ({ user, showToast }) => {
                 <p className="text-sm text-gray-700 mb-3">{slot.student_name ?? '—'}</p>
 
                 {slot.status === 'scheduled' && (
-                  <div className="flex gap-2 items-center flex-wrap">
-                    <span className="text-xs text-gray-500">Placa:</span>
-                    <input
-                      type="text" maxLength={10} placeholder="ABC-1234"
-                      value={plates[slot.id] ?? ''}
-                      onChange={e => setPlates(p => ({ ...p, [slot.id]: e.target.value }))}
-                      className="border border-gray-300 rounded px-2 py-1 text-sm w-28"
-                    />
-                    <div className="ml-auto flex gap-2">
+                  <div className="space-y-2 mt-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500 shrink-0">Placa:</span>
+                      <input
+                        type="text" maxLength={10} placeholder="ABC-1234"
+                        value={plates[slot.id] ?? ''}
+                        onChange={e => setPlates(p => ({ ...p, [slot.id]: e.target.value }))}
+                        className="flex-1 border border-gray-300 rounded px-2 py-2 text-sm"
+                      />
+                    </div>
+                    <div className="flex gap-2">
                       <button onClick={() => handleCheckin(slot)} disabled={!!acting[slot.id] || !plates[slot.id]?.trim()}
-                        className="bg-green-100 text-green-800 border border-green-300 rounded px-3 py-1 text-sm font-medium hover:bg-green-200 disabled:opacity-50">
+                        className="flex-1 py-2.5 bg-green-100 text-green-800 border border-green-300 rounded text-sm font-medium hover:bg-green-200 disabled:opacity-50">
                         {acting[slot.id] === 'checkin' ? '...' : '✓ Check-in'}
                       </button>
                       <button onClick={() => handleNoShow(slot)} disabled={!!acting[slot.id]}
-                        className="bg-red-100 text-red-800 border border-red-300 rounded px-3 py-1 text-sm font-medium hover:bg-red-200 disabled:opacity-50">
+                        className="flex-1 py-2.5 bg-red-100 text-red-800 border border-red-300 rounded text-sm font-medium hover:bg-red-200 disabled:opacity-50">
                         {acting[slot.id] === 'noshow' ? '...' : '✗ Não veio'}
                       </button>
                     </div>
