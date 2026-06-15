@@ -58,14 +58,14 @@ export const AdminDashboard = () => {
               <p className="text-gray-500">Nenhuma aula hoje.</p>
             ) : (
               <>
-                <div className="grid grid-cols-4 gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  <span>Horário</span><span>Aluno</span><span>Instrutor</span><span>Status</span>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <span>Horário</span><span>Aluno</span><span className="hidden sm:block">Instrutor</span><span>Status</span>
                 </div>
                 {slots.map(s => (
-                  <div key={s.id} className="grid grid-cols-4 gap-2 rounded bg-gray-50 p-2 text-sm text-gray-700">
+                  <div key={s.id} className="grid grid-cols-3 sm:grid-cols-4 gap-2 rounded bg-gray-50 p-2 text-sm text-gray-700">
                     <span className="font-semibold text-gray-800">{s.start_time?.substring(0, 5)}</span>
-                    <span>{s.student_name}</span>
-                    <span>{s.instructor_name}</span>
+                    <span className="truncate">{s.student_name}</span>
+                    <span className="hidden sm:block truncate">{s.instructor_name}</span>
                     <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${STATUS_COLORS[s.status] ?? 'bg-gray-100 text-gray-600'}`}>
                       {STATUS_LABELS[s.status] ?? s.status}
                     </span>
